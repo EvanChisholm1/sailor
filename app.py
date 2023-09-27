@@ -3,6 +3,7 @@ from flask_cors import CORS, cross_origin
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import json
+from knn import calculate_similarity
 
 app = Flask(__name__)
 
@@ -61,11 +62,7 @@ def search():
     most_similar = [{'embedding': None, 'similarity': -float('inf')}] * 10;
 
     for e in embeddings:
-        dot_product = np.dot(e['embedding'], embededQ)
-        normA = np.linalg.norm(e['embedding'])
-        normB = np.linalg.norm(embededQ)
-        sim = dot_product / (normA * normB);
-
+        sim = calculate_similarity(e['embedding'], embededQ)
 
         if sim > most_similar[-1]['similarity']:
             print('greater similarity')
