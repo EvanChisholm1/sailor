@@ -3,7 +3,7 @@ from flask_cors import CORS, cross_origin
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import json
-from knn import calculate_similarity
+from knn import KnnIndex
 
 app = Flask(__name__)
 
@@ -27,6 +27,7 @@ def getTextChunks(text):
     return sentences
 
 embeddings = []
+index = KnnIndex(model)
 
 @app.route("/", methods=["GET", "POST"])
 @cross_origin()
@@ -36,11 +37,7 @@ def main():
         print(f"URL: {request.json['url']}\n")
 
         for sentence in getTextChunks(request.json['text']):
-            embeddings.append({
-                'url': request.json['url'], 
-                'sentence': sentence, 
-                'embedding': model.encode(sentence)
-            })
+            index.add_item(request.json['url'], sentence)
 
         for e in embeddings:
             print(e['url'], "\n")
@@ -54,38 +51,12 @@ def main():
 @app.get("/search")
 @cross_origin()
 def search():
-    query = request.args.get('q')
+    q = request.args.get('q')
 
-    print("searched for:", query)
+    print("searched for:", q)
 
-    embededQ = model.encode(query)
-    most_similar = [{'embedding': None, 'similarity': -float('inf')}] * 10;
+    most_similar = index.search(q, 10)
 
-    for e in embeddings:
-        sim = calculate_similarity(e['embedding'], embededQ)
-
-        if sim > most_similar[-1]['similarity']:
-            print('greater similarity')
-            most_similar.pop()
-            most_similar.append({
-                'embedding': e,
-                'similarity': sim
-            })
-            # really slow but works for now
-            most_similar = sorted(most_similar, key=lambda x:x['similarity'], reverse=True)
-
-            # make sure the same page does not show up multiple times due to the fact that there are multiple chunks of each website in the embedding list
-            urls = set()
-            for embedding_check in most_similar:
-                if embedding_check['embedding'] == None: continue
-                if embedding_check['embedding']['url'] in urls:
-                    most_similar.remove(embedding_check)
-                    most_similar.append({'embedding': None, 'similarity': -float('inf')})
-                
-                urls.add(embedding_check['embedding']['url'])
-
-                
-        
     for i in most_similar:
         if not i['embedding'] == None:
             print(i['embedding']['url'], f"\n {i['embedding']['sentence']} \n\n")
