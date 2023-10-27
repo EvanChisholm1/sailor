@@ -1,3 +1,4 @@
+import json
 import numpy as np
 
 class KnnIndex:
@@ -11,7 +12,6 @@ class KnnIndex:
         return self.knn(e, k)
 
     def knn(self, target, k):
-
         most_similar = [{'embedding': None, 'similarity': -float('inf')}] * k;
 
         for e in self.embeddings:
@@ -45,9 +45,28 @@ class KnnIndex:
             'sentence': sentence,
             'embedding': embedding if embedding != None else self.model.encode(sentence)
         })
+    
+        self.save_file("./db.json")
 
+    # for now we just store a json file, may have to switch to something else at somepoint if it becomes slow
     def save_file(self, path):
-        pass
+        json_dict = {
+            'embeddings': []
+        }
+
+        for e in self.embeddings:
+            serializable = {
+                'url': e['url'],
+                'sentence': e['sentence'],
+                'embedding': e['embedding'].tolist()
+            }
+
+            json_dict['embeddings'].append(serializable)
+        
+        with open(path, "w") as db_file:
+            db_file.write(json.dumps(json_dict))
+
+
 
     def load_file(self, path):
         pass
