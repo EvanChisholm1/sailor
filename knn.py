@@ -66,8 +66,6 @@ class KnnIndex:
         with open(path, "w") as db_file:
             db_file.write(json.dumps(json_dict))
 
-
-
     def load_file(self, path):
         pass
 
