@@ -24,6 +24,8 @@ def getTextChunks(text):
             sentences.append(sentence)
             recent = []
     
+    sentences.append(" ".join(recent))
+    
     return sentences
 
 embeddings = []
