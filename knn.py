@@ -39,7 +39,9 @@ class KnnIndex:
                         urls.add(embedding_check['embedding']['url'])
                 
                 while len(new_similar) < k:
-                    most_similar.append({'embedding': None, 'similarity': -float('inf')})
+                    new_similar.append({'embedding': None, 'similarity': -float('inf')})
+                
+                most_similar = new_similar
 
 
         return most_similar
