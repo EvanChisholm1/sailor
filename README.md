@@ -3,7 +3,8 @@
 Sailor stands for:
 
 -   S emantic
--   AI
+-   A rtificial
+-   I ntelligence
 -   L ink
 -   O rganizer
 -   R etriever
@@ -16,4 +17,5 @@ This is sort of a spiritual successor to [WTFDIST](https://github.com/EvanChisho
 -   [ ] better chunking
 -   [ ] better vector db/search algorithim. [Twisty?](https://github.com/EvanChisholm1/twisty)
 -   [ ] rag llm chatbot
--   [] switch away from json file? storing numbers as text isn't exactly the smartest way to do it.
+-   [ ] switch away from json file? storing numbers as text isn't exactly the smartest way to do it.
+-   [ ] Avoid duplication, check if url already exists, if it does then don't add, only update if over a certain age.
