@@ -28,6 +28,7 @@ def getTextChunks(text):
 
 embeddings = []
 index = KnnIndex(model)
+index.load_file('./db.json')
 
 @app.route("/", methods=["GET", "POST"])
 @cross_origin()

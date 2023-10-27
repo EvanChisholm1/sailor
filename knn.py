@@ -7,11 +7,11 @@ class KnnIndex:
         self.model = model
         pass
     
-    def search(self, query, k):
+    def search(self, query, k, duplicates=False):
         e = self.model.encode(query)
-        return self.knn(e, k)
+        return self.knn(e, k, duplicates)
 
-    def knn(self, target, k):
+    def knn(self, target, k, duplicates=False):
         most_similar = [{'embedding': None, 'similarity': -float('inf')}] * k;
 
         for e in self.embeddings:
@@ -27,15 +27,20 @@ class KnnIndex:
                 # really slow but works for now
                 most_similar = sorted(most_similar, key=lambda x:x['similarity'], reverse=True)
 
+                if duplicates: continue
+
                 # make sure the same page does not show up multiple times due to the fact that there are multiple chunks of each website in the embedding list
                 urls = set()
+                new_similar = []
                 for embedding_check in most_similar:
                     if embedding_check['embedding'] == None: continue
-                    if embedding_check['embedding']['url'] in urls:
-                        most_similar.remove(embedding_check)
-                        most_similar.append({'embedding': None, 'similarity': -float('inf')})
-                    
-                    urls.add(embedding_check['embedding']['url'])
+                    if embedding_check['embedding']['url'] not in urls:
+                        new_similar.append(embedding_check)
+                        urls.add(embedding_check['embedding']['url'])
+                
+                while len(new_similar) < k:
+                    most_similar.append({'embedding': None, 'similarity': -float('inf')})
+
 
         return most_similar
 
@@ -43,7 +48,7 @@ class KnnIndex:
         self.embeddings.append({
             'url': url,
             'sentence': sentence,
-            'embedding': embedding if embedding != None else self.model.encode(sentence)
+            'embedding': embedding if embedding != None else self.model.encode(sentence),
         })
     
         self.save_file("./db.json")
@@ -67,7 +72,18 @@ class KnnIndex:
             db_file.write(json.dumps(json_dict))
 
     def load_file(self, path):
-        pass
+        print('loading db...')
+        with open(path, "r") as db_file:
+            text = db_file.read()
+            json_dict = json.loads(text)
+            for item in json_dict['embeddings']:
+                item['embedding'] = np.asarray(item['embedding'])
+            
+            self.embeddings = json_dict['embeddings']
+        
+        print('print db loaded!')
+        
+
 
 def calculate_similarity(a, b):
     dot_product = np.dot(a, b)
