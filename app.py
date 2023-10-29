@@ -1,7 +1,6 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_cors import CORS, cross_origin
 from sentence_transformers import SentenceTransformer
-import numpy as np
 import json
 from knn import KnnIndex
 
@@ -70,6 +69,8 @@ def search():
         'title': e['embedding']['url'],
         'content': e['embedding']['sentence'],
         'link': e['embedding']['url'],
+        'similarity': e['similarity'] if e['similarity'] > -10 else -10
     } for e in most_similar if not e['embedding'] == None]
 
-    return json.dumps(out)
+    
+    return Response(json.dumps(out), content_type='Application/json')
